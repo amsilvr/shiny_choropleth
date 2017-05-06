@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+helpers.R
+archive
+data
+*msgfile.csv
+.httr-oauth
