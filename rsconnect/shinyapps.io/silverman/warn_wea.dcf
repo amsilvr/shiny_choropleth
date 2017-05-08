@@ -1,0 +1,11 @@
+name: warn_wea
+title: WARN_WEA
+account: silverman
+server: shinyapps.io
+appId: 178755
+bundleId: 819555
+url: https://silverman.shinyapps.io/warn_wea/
+when: 1494269704.3884
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|archive/.gitignore|archive/2017-04-24-msgfile.csv|archive/2017-04-27-msgfile.csv|archive/2017-04-28-msgfile.csv|archive/2017-05-04-msgfile.csv|archive/2017-05-05-msgfile.csv|archive/2017-05-06-msgfile.csv|archive/2017-05-07-msgfile.csv|archive/AlertMapping.R|archive/app-2017-04-27.R|archive/app.R|archive/helpers.R|data/cb_2016_us_county_20m.cpg|data/cb_2016_us_county_20m.dbf|data/cb_2016_us_county_20m.prj|data/cb_2016_us_county_20m.shp|data/cb_2016_us_county_20m.shp.ea.iso.gfs|data/cb_2016_us_county_20m.shp.ea.iso.xml|data/cb_2016_us_county_20m.shp.iso.gfs|data/cb_2016_us_county_20m.shp.iso.xml|data/cb_2016_us_county_20m.shp.xml|data/cb_2016_us_county_20m.shx|data/cb_2016_us_state_20m.cpg|data/cb_2016_us_state_20m.dbf|data/cb_2016_us_state_20m.prj|data/cb_2016_us_state_20m.shp|data/cb_2016_us_state_20m.shp.ea.iso.xml|data/cb_2016_us_state_20m.shp.iso.xml|data/cb_2016_us_state_20m.shp.xml|data/cb_2016_us_state_20m.shx|data/county_shape_file.zip|data/state_shape_file.zip

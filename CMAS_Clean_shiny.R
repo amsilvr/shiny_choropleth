@@ -1,11 +1,11 @@
 ## CMAS Clean
 
-require(googlesheets)
-require(tidyverse)
-require(lubridate)
-require(stringr)
-require(sf)
-#require(rgdal)
+library(googlesheets)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(sf)
+#library(rgdal)
 
 ss_new <- gs_key("1Xw4JefUCS4HHQ0KpvKhr-DjklqzhH3_CeA-zhoAuQfI", visibility = "private") #CMAS_Alerts_Processed
 day_file_name <- paste0(today(),"-msgfile.csv")
@@ -76,7 +76,7 @@ load_msgs <- function() {
                 dplyr::filter(!(gateway_id == "http://tcs.tsis.com\n") ) 
         
         msg <- msg[-grep(" test", msg$threat_type),] 
-       write.csv(msg, file = day_file_name) 
+       # write.csv(msg, file = day_file_name) commented out for shinyapps version
        return(msg)
        
         } 

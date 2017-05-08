@@ -9,13 +9,13 @@
 
 
 
-require(shiny)
-require(shinythemes)
-require(tidyverse)
-require(lubridate)
-require(stringr)
-require(sf)
-require(leaflet)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(sf)
+library(leaflet)
 
 # Download Shapefiles
 # 
