@@ -28,7 +28,8 @@ WEA Message Effects
 Preliminary studies by PBS have shown a significant decrease in tornado-related casualties since the advent of WEA messaging on April 7, 2012.  Injury and fatality rates for lightning and thunderstorm winds (which are not subject to WEAs) have not shown similar decreases.
 
 
-
+![Injuries](ddp-pitch-figure/wea_effect-1.png)
+![Deaths](ddp-pitch-figure/wea_effect-2.png)
 The WARN Message Map
 ========================================================
 
