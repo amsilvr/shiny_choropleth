@@ -97,8 +97,8 @@ state_iso <- read_csv("https://www2.census.gov/geo/docs/reference/codes/files/na
 
 map_counties <- function() {
   # Download Shapefiles
-  
-  countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
+  countyshapes_url <- "https://www2.census.gov/geo/tiger/TIGER2016/COUNTY/tl_2016_us_county.zip"
+  #countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
   if (!dir.exists("data")) {dir.create("data")}
   if (!file.exists("data/county_shape_file.zip")) {
     download.file(countyshapes_url

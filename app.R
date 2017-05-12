@@ -22,7 +22,7 @@ library(leaflet)
 if (!exists("alert_tally")) {
   source("CMAS_Clean_shiny.R", echo = TRUE)
 }
-
+#countyshapes_url <- "https://www2.census.gov/geo/tiger/TIGER2016/COUNTY/tl_2016_us_county.zip"
 countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
 stateshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip"
 if (!dir.exists("data")) {dir.create("data")}
@@ -49,17 +49,13 @@ counties_sf$NAME <- str_replace_all(counties_sf$NAME, pattern = "Ã±",replaceme
   str_replace_all("Ã³",replacement = "ó") %>%
   str_replace_all("Ã",replacement = "í")
 
-states_sf <- read_sf(s_shp[4]) %>% 
-  st_transform('+proj=longlat +datum=WGS84')
-
-
 bins <- c(0, 1, 3, 5, 10, 20, 30, 40, 80, 205)
-pal <- colorBin("Reds", domain = NULL, bins = bins, pretty = TRUE)
+pal <- colorBin("YlOrRd", domain = NULL, bins = bins, pretty = TRUE)
 
 
 # Define UI for application that draws a histogram
 ui <- bootstrapPage(
-  theme = shinytheme('superhero'),
+  theme = shinytheme('darkly'),
 
    # Application title
   tags$style(type = "text/css",
@@ -75,7 +71,7 @@ ui <- bootstrapPage(
   h3("Mouse over map for more info"),
 
   # Show choropleth of selected alerts
-  leafletOutput("map", width = "100%", height = "100%"),
+  leafletOutput("map", width = "100%", height = "85%"),
 
    # Dropdown menu
    absolutePanel( top = "20px"
@@ -90,7 +86,14 @@ ui <- bootstrapPage(
                                   ,"Tsunami"
                                   ,"Other")
               )
-      )
+      ),
+  absolutePanel( top = "20px"
+                 , right = "10%"
+                 , width = "20%"
+                 , draggable = TRUE
+                 , tableOutput("events")
+                 )
+
 )
 
 allCounties <- left_join(counties_sf, alert_tally)
@@ -105,25 +108,18 @@ server <- function(input, output, session) {
     allCounties %>%
               mutate_(inst = input$alertType)
         })
-
-
+  v <- reactiveValues(msg = '')
+  
 output$map <- renderLeaflet({
-    leaflet(data = fd()) %>%
-      addTiles(
-        urlTemplate = "//{s}.tiles.mapbox.com/v3/jcheng.map-5ebohr46/{z}/{x}/{y}.png",
-        attribution = 'Maps by <a href="http://www.mapbox.com/">Mapbox</a>'
-        ) %>%
-      setView(lng = -93.85, lat = 37.45, zoom = 5) %>%
-    
-      addPolygons(data = states_sf
-                , stroke = TRUE
-                , weight = 2
-                , opacity = 1
-                , color = "grey"
-                , fill = FALSE
-    ) %>%
+    leaflet() %>%
+    addProviderTiles(providers$Stamen.TonerLite) %>%
+    setView(lng = -93.85, lat = 37.45, zoom = 5) 
+})
+  
+observeEvent(input$alertType, {
+    leafletProxy('map') %>%
+    clearShapes() %>%
     addPolygons(data = fd()
-                #, layerId = input$alertType
                 , stroke = FALSE
                 , label = ~paste0("<strong>"
                                   ,NAME
@@ -138,12 +134,12 @@ output$map <- renderLeaflet({
                                   ," WEA Messages") %>% 
                   lapply(htmltools::HTML)
                 , labelOptions = labelOptions(style = list(
-                      "color" = "steelblue",
+                      "color" = "#2b3e50",
                       "box-shadow" = "3px 3px rgba(0,0,0,0.25)",
                       "text-align" = "left",
-                      "font-size" = "15px",
+                      "font-size" = "17px",
                       "border-color" = "rgba(0,0,0,0.5)"))
-                , fillOpacity = .5
+                , fillOpacity = .6
                 , smoothFactor = .5
                 , fillColor = ~pal(inst)
                 , highlight = highlightOptions(
@@ -154,29 +150,13 @@ output$map <- renderLeaflet({
                       bringToFront = FALSE)
         )
 })
-  
-  # A reactive expression that returns the set of counties that are
-  # in bounds right now - adapted from https://github.com/rstudio/shiny-examples/blob/master/063-superzip-example/server.R
-  # # countiesInBounds <- reactive({
-  # #   if (is.null(input$map_bounds))
-  # #     return(allCounties[FALSE,])
-  # #   bounds <- input$map_bounds
-  # #   latRng <- range(bounds$north, bounds$south)
-  # #   lngRng <- range(bounds$east, bounds$west)
-  # #   
-  # #   subset(allCounties,
-  # #          latitude >= latRng[1] & latitude <= latRng[2] &
-  # #            longitude >= lngRng[1] & longitude <= lngRng[2])
-  # })
-  
-    
 
+ observeEvent(input$map1_bounds, {
+   proxy <- leafletProxy("map") %>%
+     setView(input$map1_bounds)
+ })
  
- # observe({# new polygon layer
- #   proxy <- leafletProxy("map") 
- #   })
-
- observe({ # redraw legend
+ observeEvent(input$alertType, { # redraw legend
       proxy <- leafletProxy("map", data = fd()) %>%
         clearControls() %>%
         addLegend(pal = pal
@@ -186,6 +166,15 @@ output$map <- renderLeaflet({
                 , position = "topleft")
     })
 
+ #Create Event List for County
+ observeEvent(input$map1_shape_click, {
+   v$eventList <- filter_(fips_msg, GEOID == input$map_shape_click$GEOID) %>%
+     left_join(msg2) %>%
+     select(rec_time, wea, type)
+ })
+ 
+ output$events <- renderTable(v$eventList)
+ 
  }
 
 # Run the application
