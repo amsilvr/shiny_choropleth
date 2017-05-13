@@ -22,24 +22,17 @@ library(leaflet)
 if (!exists("alert_tally")) {
   source("CMAS_Clean_shiny.R", echo = TRUE)
 }
-#countyshapes_url <- "https://www2.census.gov/geo/tiger/TIGER2016/COUNTY/tl_2016_us_county.zip"
 countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
-stateshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip"
 if (!dir.exists("data")) {dir.create("data")}
 if (!file.exists("data/county_shape_file.zip")) {
   download.file(countyshapes_url
                 , destfile = "data/county_shape_file.zip")}
 
-if (!file.exists("data/state_shape_file.zip")) {
-  download.file(stateshapes_url
-                , destfile = "data/state_shape_file.zip")}
-  
   c_shp <- unzip("data/county_shape_file.zip", exdir = "data")
-  s_shp <- unzip("data/state_shape_file.zip", exdir = "data")
 
 # Read the file with sf and add the proper crs code for this projection
 
-counties_sf <- read_sf(c_shp[5]) %>%
+counties_sf <- read_sf(c_shp[grep("shp$", c_shp)]) %>% #pulls the shp file from the zip
   left_join(state_iso) %>%
   st_transform('+proj=longlat +datum=WGS84') %>%
   inner_join(lsad_lookup())

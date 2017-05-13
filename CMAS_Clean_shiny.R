@@ -97,8 +97,7 @@ state_iso <- read_csv("https://www2.census.gov/geo/docs/reference/codes/files/na
 
 map_counties <- function() {
   # Download Shapefiles
-  countyshapes_url <- "https://www2.census.gov/geo/tiger/TIGER2016/COUNTY/tl_2016_us_county.zip"
-  #countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
+  countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
   if (!dir.exists("data")) {dir.create("data")}
   if (!file.exists("data/county_shape_file.zip")) {
     download.file(countyshapes_url
@@ -108,7 +107,7 @@ map_counties <- function() {
    
  
    # Read the file with sf
-tmp <- st_read(t[4]) %>%
+tmp <- st_read(t[grep("shp$",t)]) %>%
   left_join(state_iso) %>%
   group_by(STATEFP, COUNTYFP)
   tmp$NAME <- str_replace_all(tmp$NAME, pattern = "Ã±",replacement = "n") %>%
