@@ -101,7 +101,11 @@ fd <- reactive({
 output$map <- renderLeaflet({
     leaflet() %>%
     addProviderTiles(providers$Stamen.TonerLite) %>%
+<<<<<<< HEAD
     setView(lng = -93.85, lat = 37.45, zoom = 4) #%>%
+=======
+    setView(lng = -93.85, lat = 37.45, zoom = 5) #%>%
+>>>>>>> ce9a78b976b077c7b70a008f2ce13b27938a77ce
 # Layer Controls
     # addLayersControl(
     #   alertTypeGroups = c("Total"
