@@ -122,7 +122,10 @@ observeEvent(input$alertType, {
     leafletProxy('map') %>%
     clearShapes() %>%
     addPolygons(data = fd()
+<<<<<<< HEAD
                 , group = input$alertType
+=======
+>>>>>>> ce9a78b976b077c7b70a008f2ce13b27938a77ce
                 , layerId = ~GEOID
                 , stroke = FALSE
                 , label = ~paste0("<strong>"
