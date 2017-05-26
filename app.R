@@ -1,13 +1,4 @@
-#
-# This is a Shiny web application. You can run the application by clicking
-# the 'Run App' button above.
-#
-# Find out more about building applications with Shiny here:
-#
-#    http://shiny.rstudio.com/
-#
-
-
+# Setup
 
 library(shiny)
 library(shinythemes)
@@ -47,8 +38,8 @@ pal <- colorBin("YlOrRd", domain = NULL, bins = bins, pretty = TRUE)
 
 
 # Define UI for application that draws a histogram
-ui <- bootstrapPage(
-  theme = shinytheme('darkly'),
+ui <- fluidPage(
+  #theme = shinytheme('darkly'),
 
    # Application title
   tags$style(type = "text/css",
@@ -64,28 +55,31 @@ ui <- bootstrapPage(
   h3("Mouse over map for more info"),
 
   # Show choropleth of selected alerts
-  leafletOutput("map", width = "100%", height = "85%"),
-
-   # Dropdown menu
-   absolutePanel( top = "20px"
-                 , left = "10%"
-                 , width = "20%"
-                 , draggable = TRUE
-        ,selectInput(inputId = "alertType", label = "Which Alert Type?"
-                     ,choices = c("Total"
-                                  ,"AMBER"
-                                  ,"FlashFlood"
-                                  ,"Tornado"
-                                  ,"Tsunami"
-                                  ,"Other")
-              )
-      ),
-  absolutePanel( top = "20px"
-                 , right = "10%"
-                 , width = "20%"
-                 , draggable = TRUE
-                 , tableOutput("events")
+  column(2,selectInput(inputId = "alertType", label = "Which Alert Type?"
+                              ,choices = c("Total"
+                                           ,"AMBER"
+                                           ,"FlashFlood"
+                                           ,"Tornado"
+                                           ,"Tsunami"
+                                           ,"Other")
                  )
+  ),
+  
+   column(8,
+    leafletOutput("map", width = "100%", height ="600px")
+    ),
+  
+  # Dropdown HTML Selector menu 
+  
+  
+  column(2
+         # top = "20px"
+         #         , right = "10%"
+         #         , width = "20%"
+         #         , draggable = TRUE
+      , h2("Events")
+           , tableOutput("events")
+        )
 
 )
 
@@ -96,23 +90,35 @@ allCounties[is.na(allCounties)] <- 0
 # Define server logic required to draw a histogram
 server <- function(input, output, session) {
   type <- reactive(renderText(input$alertType))
-  # map data
-  fd <- reactive({
-    allCounties %>%
-              mutate_(inst = input$alertType)
-        })
-  v <- reactiveValues(msg = '')
+# Reactive variable fd containing (f)iltered (d)ata
+fd <- reactive({
+  allCounties %>%
+            mutate_(inst = input$alertType)
+      })
+# Reactive variable containing click_data
+  click_data <- reactiveValues(clickedMarker = NULL)
   
 output$map <- renderLeaflet({
     leaflet() %>%
     addProviderTiles(providers$Stamen.TonerLite) %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 5) 
+    setView(lng = -93.85, lat = 37.45, zoom = 5) #%>%
+# Layer Controls
+    # addLayersControl(
+    #   alertTypeGroups = c("Total"
+    #                       ,"AMBER"
+    #                       ,"FlashFlood"
+    #                       ,"Tornado"
+    #                       ,"Tsunami"
+    #                       ,"Other")
+    #   , options = layersControlOptions(collapsed = FALSE)
+    # )
 })
   
 observeEvent(input$alertType, {
     leafletProxy('map') %>%
     clearShapes() %>%
     addPolygons(data = fd()
+                , layerId = ~GEOID
                 , stroke = FALSE
                 , label = ~paste0("<strong>"
                                   ,NAME
@@ -143,7 +149,7 @@ observeEvent(input$alertType, {
                       bringToFront = FALSE)
         )
 })
-
+# Store the Map Boundaries on screen
  observeEvent(input$map1_bounds, {
    proxy <- leafletProxy("map") %>%
      setView(input$map1_bounds)
@@ -159,14 +165,27 @@ observeEvent(input$alertType, {
                 , position = "topleft")
     })
 
- #Create Event List for County
- observeEvent(input$map1_shape_click, {
-   v$eventList <- filter_(fips_msg, GEOID == input$map_shape_click$GEOID) %>%
-     left_join(msg2) %>%
-     select(rec_time, wea, type)
+ # store the clicked county
+ observeEvent(input$map_shape_click, {
+   click_data$clickedShape <- input$map_shape_click
  })
  
- output$events <- renderTable(v$eventList)
+ #Create a table with all the events in that geoid
+   output$events <- renderTable({
+     county_events = click_data$clickedShape$id %>%
+     print()
+     filter(fips_msg, GEOID == county_events) %>%
+       left_join(msg2) %>%
+       filter(type == input$alertType) %>%
+       transmute(`Alert Received` = 
+                   paste(month(rec_time,abbr = TRUE)
+                         , day(rec_time)
+                         , year(rec_time) )
+                         , wea)
+     }
+     , striped = TRUE
+     , hover = TRUE
+     , bordered = TRUE)
  
  }
 
