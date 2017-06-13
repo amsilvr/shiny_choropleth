@@ -91,7 +91,7 @@ state_iso <- read_csv("https://www2.census.gov/geo/docs/reference/codes/files/na
                                       , "STATEFP"
                                       , "COUNTYFP"
                                       , "name","x")) %>%
-    select(2,1) %>%
+    transmute(STATEFP = as.character(STATEFP), iso_3166_2) %>%
     unique()
 
 
@@ -108,23 +108,26 @@ map_counties <- function() {
  
    # Read the file with sf
 tmp <- st_read(t[grep("shp$",t)]) %>%
+  mutate(STATEFP = as.character(STATEFP),
+         COUNTYFP = as.character(COUNTYFP)) %>%
   left_join(state_iso) %>%
-  group_by(STATEFP, COUNTYFP)
-  tmp$NAME <- str_replace_all(tmp$NAME, pattern = "Ã±",replacement = "n") %>%
-  str_replace_all("Ã¡",replacement = "a") %>%
-  str_replace_all("Ã¼",replacement = "u") %>%
-  str_replace_all("Ã³",replacement = "o") %>%
-  str_replace_all("Ã",replacement = "i")
-  return(tmp)
+  #group_by(STATEFP, COUNTYFP) %>%
+  mutate(NAME = str_replace_all(NAME, pattern = "Ã±",replacement = "ñ") %>%
+           str_replace_all("Ã¡",replacement = "á") %>%
+           str_replace_all("Ã¼",replacement = "ñ") %>%
+           str_replace_all("Ã³",replacement = "ó") %>%
+           str_replace_all("Ã",replacement = "í")) %>%
+ 
+  return()
 }
   
 
 ## Download local copy of FIPS lookup data and read into memory
 load_fips <- function() {
   counties_sf <- map_counties() %>%
-    mutate(areaname = paste(iso_3166_2, NAME)) %>%
+    mutate(areaname = paste(iso_3166_2, NAME),
+           STATEFP = as.character(STATEFP)) %>%
     return()
-  
   }
 
 
