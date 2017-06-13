@@ -97,13 +97,15 @@ fd <- reactive({
       })
 # Reactive variable containing click_data
   click_data <- reactiveValues(clickedMarker = NULL)
-
-# Base Map 
+  
 output$map <- renderLeaflet({
     leaflet() %>%
     addProviderTiles(providers$Stamen.TonerLite) %>%
-    setView(lng = -93.85, lat = 37.45, zoom = 4) 
-
+<<<<<<< HEAD
+    setView(lng = -93.85, lat = 37.45, zoom = 4) #%>%
+=======
+    setView(lng = -93.85, lat = 37.45, zoom = 5) #%>%
+>>>>>>> ce9a78b976b077c7b70a008f2ce13b27938a77ce
 # Layer Controls
     # addLayersControl(
     #   alertTypeGroups = c("Total"
@@ -120,7 +122,10 @@ observeEvent(input$alertType, {
     leafletProxy('map') %>%
     clearShapes() %>%
     addPolygons(data = fd()
+<<<<<<< HEAD
                 , group = input$alertType
+=======
+>>>>>>> ce9a78b976b077c7b70a008f2ce13b27938a77ce
                 , layerId = ~GEOID
                 , stroke = FALSE
                 , label = ~paste0("<strong>"
