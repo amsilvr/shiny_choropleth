@@ -3,6 +3,7 @@
 library(shiny)
 library(shinythemes)
 library(tidyverse)
+library(RColorBrewer)
 library(lubridate)
 library(stringr)
 library(sf)
@@ -28,12 +29,13 @@ counties_sf <- read_sf(c_shp[grep("shp$", c_shp)],
   left_join(state_iso) %>%
   st_transform('+proj=longlat +datum=WGS84') %>%
   inner_join(lsad_lookup()) %>%
-mutate(NAME = str_replace_all(NAME, pattern = "Ã±",replacement = "ñ") %>%
-  str_replace_all("Ã¡",replacement = "á") %>%
-  str_replace_all("Ã¼",replacement = "ñ") %>%
-  str_replace_all("Ã³",replacement = "ó") %>%
-  str_replace_all("Ã",replacement = "í")
+  mutate(NAME = str_replace_all(NAME, pattern = "Ã±",replacement = "ñ") %>%
+    str_replace_all("Ã¡",replacement = "á") %>%
+    str_replace_all("Ã¼",replacement = "ñ") %>%
+    str_replace_all("Ã³",replacement = "ó") %>%
+    str_replace_all("Ã",replacement = "í")
 )
+
 bins <- c(0, 1, 3, 5, 10, 20, 30, 40, 80, 205)
 pal <- colorBin("YlOrRd", domain = NULL, bins = bins, pretty = TRUE)
 
