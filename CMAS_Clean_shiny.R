@@ -5,7 +5,7 @@ library(tidyverse)
 library(lubridate)
 library(stringr)
 library(sf)
-#library(rgdal)
+library(htmltab)
 
 ss_new <- gs_key("1Xw4JefUCS4HHQ0KpvKhr-DjklqzhH3_CeA-zhoAuQfI", visibility = "private") #CMAS_Alerts_Processed
 day_file_name <- paste0(today(),"-msgfile.csv")
@@ -97,7 +97,6 @@ state_iso <- read_csv("https://www2.census.gov/geo/docs/reference/codes/files/na
 
 map_counties <- function() {
   # Download Shapefiles
-  
   countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
   if (!dir.exists("data")) {dir.create("data")}
   if (!file.exists("data/county_shape_file.zip")) {
@@ -108,7 +107,7 @@ map_counties <- function() {
    
  
    # Read the file with sf
-tmp <- st_read(t[4]) %>%
+tmp <- st_read(t[grep("shp$",t)]) %>%
   left_join(state_iso) %>%
   group_by(STATEFP, COUNTYFP)
   tmp$NAME <- str_replace_all(tmp$NAME, pattern = "Ã±",replacement = "n") %>%
@@ -127,14 +126,14 @@ load_fips <- function() {
     return()
   
   }
-## isolates the state and county, given column with 
-## comma separated list in format "city (ST)"
-# 
-# right_join(areas) %>%
-#   select(msg_id, GEOID) %>%
-#   rbind(areas_states)
+
 
 lsad_lookup <- function() {
+# This looks up the location classification names 
+# from lsad.html
+# and makes them readable for the data labels in the
+# choropleth 
+  
   url <- "https://www.census.gov/geo/reference/lsad.html"
   lsad <- htmltab::htmltab(doc = url, which = "//th[text() = 'LSAD']/ancestor::table") %>%
     filter(grepl("06|04|12|05|03|00|15|25|13", LSAD) == TRUE) %>%

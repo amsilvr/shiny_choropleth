@@ -13,23 +13,17 @@ library(leaflet)
 if (!exists("alert_tally")) {
   source("CMAS_Clean_shiny.R", echo = TRUE)
 }
-
 countyshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_county_20m.zip"
-stateshapes_url <- "http://www2.census.gov/geo/tiger/GENZ2016/shp/cb_2016_us_state_20m.zip"
 if (!dir.exists("data")) {dir.create("data")}
 if (!file.exists("data/county_shape_file.zip")) {
   download.file(countyshapes_url
                 , destfile = "data/county_shape_file.zip")}
 
-if (!file.exists("data/state_shape_file.zip")) {
-  download.file(stateshapes_url
-                , destfile = "data/state_shape_file.zip")}
-  
   c_shp <- unzip("data/county_shape_file.zip", exdir = "data")
 
 # Read the file with sf and add the proper crs code for this projection
 
-counties_sf <- read_sf(c_shp[5]) %>%
+counties_sf <- read_sf(c_shp[grep("shp$", c_shp)]) %>% #pulls the shp file from the zip
   left_join(state_iso) %>%
   st_transform('+proj=longlat +datum=WGS84') %>%
   inner_join(lsad_lookup())
@@ -40,11 +34,11 @@ counties_sf$NAME <- str_replace_all(counties_sf$NAME, pattern = "Ã±",replaceme
   str_replace_all("Ã",replacement = "í")
 
 bins <- c(0, 1, 3, 5, 10, 20, 30, 40, 80, 205)
-pal <- colorBin("Reds", domain = NULL, bins = bins, pretty = TRUE)
+pal <- colorBin("YlOrRd", domain = NULL, bins = bins, pretty = TRUE)
 
 # Define UI for application that draws a histogram
-ui <- bootstrapPage(
-  theme = shinytheme('superhero'),
+ui <- fluidPage(
+  #theme = shinytheme('darkly'),
 
    # Application title
   tags$style(type = "text/css",
@@ -60,6 +54,7 @@ ui <- bootstrapPage(
   h3("Mouse over map for more info"),
 
   # Show choropleth of selected alerts
+
   leafletOutput("map", width = "100%", height = "100%"),
 
    # Dropdown menu
@@ -76,6 +71,7 @@ ui <- bootstrapPage(
                                   ,"Other")
               )
       )
+
 )
 
 allCounties <- left_join(counties_sf, alert_tally)
@@ -86,6 +82,7 @@ allCounties[is.na(allCounties)] <- 0
 
 server <- function(input, output, session) {
   type <- reactive(renderText(input$alertType))
+
   # Reactive variable fd containing (f)iltered (d)ata
   fd <- reactive({
     allCounties %>%
@@ -121,21 +118,27 @@ server <- function(input, output, session) {
                                       ," WEA Messages") %>% 
                       lapply(htmltools::HTML)
                     , labelOptions = labelOptions(style = list(
+
+
                       "color" = "#2b3e50",
                       "box-shadow" = "3px 3px rgba(0,0,0,0.25)",
                       "text-align" = "left",
                       "font-size" = "17px",
                       "border-color" = "rgba(0,0,0,0.5)"))
+
                     , fillOpacity = .6
                     , smoothFactor = .5
                     , fillColor = ~pal(inst)
                     , highlight = highlightOptions(
+
+
                       weight = 5,
                       color = "#666",
                       dashArray = "",
                       fillOpacity = 1,
                       bringToFront = FALSE)
         )
+
     })
     # Store the Map Boundaries on screen
     observeEvent(input$map1_bounds, {
@@ -145,6 +148,7 @@ server <- function(input, output, session) {
     
     # Re-title the legend
     observeEvent(input$alertType, { 
+
       proxy <- leafletProxy("map", data = fd()) %>%
         clearControls() %>%
         addLegend(pal = pal
@@ -154,6 +158,28 @@ server <- function(input, output, session) {
                   , position = "topleft")
     })
 
+ # store the clicked county
+ observeEvent(input$map_shape_click, {
+   click_data$clickedShape <- input$map_shape_click
+ })
+ 
+ #Create a table with all the events in that geoid
+   output$events <- renderTable({
+     county_events = click_data$clickedShape$id %>%
+     print()
+     filter(fips_msg, GEOID == county_events) %>%
+       left_join(msg2) %>%
+       filter(type == input$alertType) %>%
+       transmute(`Alert Received` = 
+                   paste(month(rec_time,abbr = TRUE)
+                         , day(rec_time)
+                         , year(rec_time) )
+                         , wea)
+     }
+     , striped = TRUE
+     , hover = TRUE
+     , bordered = TRUE)
+ 
  }
 
 # Run the application

@@ -8,7 +8,6 @@ require(lubridate)
 
 ##
 
-
 NewCMASImport <- function() { #copies new messages into main sheet
         raw <- gs_key("1GnchiRm2TXgQ1TpTGcsCIGggIjEIsd6TeuVyY_s4a3U") #CMAS Alerts
         full <- gs_key("1Xw4JefUCS4HHQ0KpvKhr-DjklqzhH3_CeA-zhoAuQfI") #CMAS_Alerts_Processed
