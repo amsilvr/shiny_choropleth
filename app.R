@@ -9,7 +9,7 @@ library(sf)
 library(leaflet)
 
 # Download Shapefiles
-# 
+ 
 if (!exists("alert_tally")) {
   source("CMAS_Clean_shiny.R", echo = TRUE)
 }
@@ -36,7 +36,6 @@ counties_sf$NAME <- str_replace_all(counties_sf$NAME, pattern = "Ã±",replaceme
 bins <- c(0, 1, 3, 5, 10, 20, 30, 40, 80, 205)
 pal <- colorBin("YlOrRd", domain = NULL, bins = bins, pretty = TRUE)
 
-
 # Define UI for application that draws a histogram
 ui <- fluidPage(
   #theme = shinytheme('darkly'),
@@ -55,31 +54,23 @@ ui <- fluidPage(
   h3("Mouse over map for more info"),
 
   # Show choropleth of selected alerts
-  column(2,selectInput(inputId = "alertType", label = "Which Alert Type?"
-                              ,choices = c("Total"
-                                           ,"AMBER"
-                                           ,"FlashFlood"
-                                           ,"Tornado"
-                                           ,"Tsunami"
-                                           ,"Other")
-                 )
-  ),
-  
-   column(8,
-    leafletOutput("map", width = "100%", height ="600px")
-    ),
-  
-  # Dropdown HTML Selector menu 
-  
-  
-  column(2
-         # top = "20px"
-         #         , right = "10%"
-         #         , width = "20%"
-         #         , draggable = TRUE
-      , h2("Events")
-           , tableOutput("events")
-        )
+
+  leafletOutput("map", width = "100%", height = "100%"),
+
+   # Dropdown menu
+   absolutePanel( top = "20px"
+                 , left = "10%"
+                 , width = "20%"
+                 , draggable = TRUE
+        ,selectInput(inputId = "alertType", label = "Which Alert Type?"
+                     ,choices = c("Total"
+                                  ,"AMBER"
+                                  ,"Flash Flood" = "FlashFlood"
+                                  ,"Tornado"
+                                  ,"Tsunami"
+                                  ,"Other")
+              )
+      )
 
 )
 
@@ -87,9 +78,11 @@ allCounties <- left_join(counties_sf, alert_tally)
 allCounties[is.na(allCounties)] <- 0
 
 
-# Define server logic required to draw a histogram
+# Define server logic required to draw a choropleth
+
 server <- function(input, output, session) {
   type <- reactive(renderText(input$alertType))
+<<<<<<< HEAD
 # Reactive variable fd containing (f)iltered (d)ata
 fd <- reactive({
   allCounties %>%
@@ -141,37 +134,82 @@ observeEvent(input$alertType, {
                                   ," WEA Messages") %>% 
                   lapply(htmltools::HTML)
                 , labelOptions = labelOptions(style = list(
+=======
+
+  # Reactive variable fd containing (f)iltered (d)ata
+  fd <- reactive({
+    allCounties %>%
+      mutate_(inst = input$alertType)
+  })
+  # Reactive variable containing click_data
+  click_data <- reactiveValues(clickedMarker = NULL)
+  
+  # Base Map 
+  output$map <- renderLeaflet({
+    leaflet() %>%
+      addProviderTiles(providers$Stamen.TonerLite) %>%
+      setView(lng = -93.85, lat = 37.45, zoom = 5)
+  })
+    
+    observeEvent(input$alertType, {
+      leafletProxy('map') %>%
+        clearShapes() %>%
+        addPolygons(data = fd()
+                    , group = input$alertType
+                    , layerId = ~GEOID
+                    , stroke = FALSE
+                    , label = ~paste0("<strong>"
+                                      ,NAME
+                                      ," "
+                                      ,description #lookup table for lsad
+                                      ,", "
+                                      ,iso_3166_2
+                                      ,":</strong><br />"
+                                      ,inst
+                                      ," "
+                                      ,input$alertType
+                                      ," WEA Messages") %>% 
+                      lapply(htmltools::HTML)
+                    , labelOptions = labelOptions(style = list(
+
+
+>>>>>>> d7b00a9a51b15d679c16563c0c5621789d7b3a72
                       "color" = "#2b3e50",
                       "box-shadow" = "3px 3px rgba(0,0,0,0.25)",
                       "text-align" = "left",
                       "font-size" = "17px",
                       "border-color" = "rgba(0,0,0,0.5)"))
-                , fillOpacity = .6
-                , smoothFactor = .5
-                , fillColor = ~pal(inst)
-                , highlight = highlightOptions(
+
+                    , fillOpacity = .6
+                    , smoothFactor = .5
+                    , fillColor = ~pal(inst)
+                    , highlight = highlightOptions(
+
+
                       weight = 5,
                       color = "#666",
                       dashArray = "",
                       fillOpacity = 1,
                       bringToFront = FALSE)
         )
-})
-# Store the Map Boundaries on screen
- observeEvent(input$map1_bounds, {
-   proxy <- leafletProxy("map") %>%
-     setView(input$map1_bounds)
- })
- 
- # Re-title the legend
- observeEvent(input$alertType, { 
+
+    })
+    # Store the Map Boundaries on screen
+    observeEvent(input$map1_bounds, {
+      proxy <- leafletProxy("map") %>%
+        setView(input$map1_bounds)
+    })
+    
+    # Re-title the legend
+    observeEvent(input$alertType, { 
+
       proxy <- leafletProxy("map", data = fd()) %>%
         clearControls() %>%
         addLegend(pal = pal
-                , values = ~inst
-                , opacity = .5
-                , title = paste0("Number of ",input$alertType," WEAs")
-                , position = "topleft")
+                  , values = ~inst
+                  , opacity = .5
+                  , title = paste0("Number of ",input$alertType," WEAs")
+                  , position = "topleft")
     })
 
  # store the clicked county
